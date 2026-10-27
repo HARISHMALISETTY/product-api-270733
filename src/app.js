@@ -5,7 +5,7 @@ app.use(express.json());
 
 /**
  * In-memory store for products.
- * @type {Array<{id: number, name: string, price: number}>}
+ * @type {Array<{id: number, name: string, price: number, archived?: boolean}>}
  */
 const products = [
   { id: 1, name: 'Laptop', price: 999.99 },
@@ -20,7 +20,8 @@ const products = [
  */
 app.get('/products', async (req, res) => {
   try {
-    res.json(products);
+    const activeProducts = products.filter(p => !p.archived);
+    res.json(activeProducts);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
@@ -113,6 +114,53 @@ app.put('/products/:id', async (req, res) => {
   }
 });
 
+/**
+ * PATCH /products/:id/archive
+ * Sets a product as archived.
+ * @param {express.Request} req - The request object.
+ * @param {express.Response} res - The response object.
+ * @returns {Promise<void>}
+ */
+app.patch('/products/:id/archive', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const product = products.find(p => p.id === id);
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    product.archived = true;
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+/**
+ * DELETE /products/:id
+ * Removes a product from the store.
+ * @param {express.Request} req - The request object.
+ * @param {express.Response} res - The response object.
+ * @returns {Promise<void>}
+ */
+app.delete('/products/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const productIndex = products.findIndex(p => p.id === id);
+
+    if (productIndex === -1) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    products.splice(productIndex, 1);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 module.exports = app;
+
 
 
