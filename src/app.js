@@ -1,7 +1,10 @@
 const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const openapi = require('./openapi.json');
 const app = express();
 
 app.use(express.json());
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
 
 /**
  * In-memory store for products.
@@ -15,8 +18,10 @@ const products = [
 
 /**
  * GET /products
- * Returns a list of all products.
- * @returns {Array} List of products.
+ * Returns a list of all products that are not archived.
+ * @param {express.Request} req - The request object (unused).
+ * @param {express.Response} res - The response object; sends 200 with the JSON array of active products, or 500 with { error } on failure.
+ * @returns {Promise<void>} Resolves once the response has been sent.
  */
 app.get('/products', async (req, res) => {
   try {
@@ -30,9 +35,9 @@ app.get('/products', async (req, res) => {
 /**
  * POST /products
  * Adds a new product to the store.
- * @param {express.Request} req - The request object.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>}
+ * @param {express.Request} req - The request object; req.body must contain a non-empty string `name` and a positive number `price`.
+ * @param {express.Response} res - The response object; sends 201 with the created product, 400 with { error } for invalid input, or 500 with { error } on failure.
+ * @returns {Promise<void>} Resolves once the response has been sent.
  */
 app.post('/products', async (req, res) => {
   try {
@@ -62,9 +67,9 @@ app.post('/products', async (req, res) => {
 /**
  * GET /products/:id
  * Returns a single product by its ID.
- * @param {express.Request} req - The request object.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>}
+ * @param {express.Request} req - The request object; req.params.id is the product ID.
+ * @param {express.Response} res - The response object; sends 200 with the product, 404 with { error } if not found, or 500 with { error } on failure.
+ * @returns {Promise<void>} Resolves once the response has been sent.
  */
 app.get('/products/:id', async (req, res) => {
   try {
@@ -84,9 +89,9 @@ app.get('/products/:id', async (req, res) => {
 /**
  * PUT /products/:id
  * Updates an existing product by its ID.
- * @param {express.Request} req - The request object.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>}
+ * @param {express.Request} req - The request object; req.params.id is the product ID and req.body must contain a non-empty string `name` and a positive number `price`.
+ * @param {express.Response} res - The response object; sends 200 with the updated product, 404 with { error } if not found, 400 with { error } for invalid input, or 500 with { error } on failure.
+ * @returns {Promise<void>} Resolves once the response has been sent.
  */
 app.put('/products/:id', async (req, res) => {
   try {
@@ -117,9 +122,9 @@ app.put('/products/:id', async (req, res) => {
 /**
  * PATCH /products/:id/archive
  * Sets a product as archived.
- * @param {express.Request} req - The request object.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>}
+ * @param {express.Request} req - The request object; req.params.id is the product ID.
+ * @param {express.Response} res - The response object; sends 200 with the archived product, 404 with { error } if not found, or 500 with { error } on failure.
+ * @returns {Promise<void>} Resolves once the response has been sent.
  */
 app.patch('/products/:id/archive', async (req, res) => {
   try {
@@ -140,9 +145,9 @@ app.patch('/products/:id/archive', async (req, res) => {
 /**
  * DELETE /products/:id
  * Removes a product from the store.
- * @param {express.Request} req - The request object.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>}
+ * @param {express.Request} req - The request object; req.params.id is the product ID.
+ * @param {express.Response} res - The response object; sends 204 with no body, 404 with { error } if not found, or 500 with { error } on failure.
+ * @returns {Promise<void>} Resolves once the response has been sent.
  */
 app.delete('/products/:id', async (req, res) => {
   try {
